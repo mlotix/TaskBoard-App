@@ -55,7 +55,7 @@ const cards = [
     ]
   }
 ]
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
     cards: cards,
     user: user
@@ -109,13 +109,28 @@ export default new Vuex.Store({
     DELETE_CARD (state, { cardIndex }) {
       const theCards = state.cards
       theCards.splice(cardIndex, 1)
+    },
+    IMPORT_STATE_FROM_STORAGE(state) {
+      if(localStorage.getItem('store')) {
+        this.replaceState(
+          Object.assign(state, JSON.parse(localStorage.getItem('store'))))
+      }
     }
   },
   actions: {
     editTask ({ state, commit }, t) {
       commit('EDIT_TASK', t)
+    },
+    resetData () {
+        localStorage.setItem('store', null)
     }
   },
   modules: {
   }
 })
+
+store.subscribe((mutation, state) => {
+  localStorage.setItem('store', JSON.stringify(state));
+})
+
+export default store

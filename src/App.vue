@@ -213,7 +213,10 @@ textarea
 }
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all .4s ease;
+  transition: transform .4s ease;
+}
+.slide-up-move {
+  transition: all 0.5s;
 }
 .slide-up-leave-to {
   transform: translateY(-30px);

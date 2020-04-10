@@ -6,7 +6,7 @@
       </div>
     </div>
     <div class="version">
-      <p>Alpha version, may be not 100% functional</p>
+      <a class="text-dark" style="font-size:13px"href="#" @click.prevent="resetData">Reset all data</a>
     </div>
       <div v-if="openedTask">
           <router-view/>
@@ -28,6 +28,14 @@ export default {
     ...mapState(['cards']),
     openedTask () {
       return this.$route.name === 'task'
+    }
+  },
+  methods: {
+    resetData() {
+      if(confirm('Do you want to reset all data?')) {
+        this.$store.dispatch('resetData')
+        this.$router.go()      
+      }
     }
   }
 }

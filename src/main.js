@@ -22,5 +22,8 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
+  beforeCreate () {
+    this.$store.commit('IMPORT_STATE_FROM_STORAGE')
+  },
   render: h => h(App)
 }).$mount('#app')

@@ -1,17 +1,17 @@
 <template lang="html">
   <div>
-    <transition-group tag="div" class="row" name="slide-up" appear>
-      <div class="taskCard" v-for="(card, $cardIndex) in cards" :key="$cardIndex"
-      draggable @drop="dropType($event, card.tasks, $cardIndex)" @dragover.prevent @dragenter.prevent @dragstart.self="dragCard($event, $cardIndex)">
-        <p class="closeCard" @click="deleteCard($cardIndex)">&times</p>
-        <h3 class="cardTitle">{{ card.title }}</h3>
-        <div class="taskBody">
-          <div class="task" v-for="( task, $taskIndex ) of card.tasks" :key="$taskIndex"
-          draggable @dragstart="dragTask($event, $taskIndex, $cardIndex)" @click="openTask(task.id)"
-          @dragover.prevent @dragenter.prevent @drop.stop="dropType($event, card.tasks, $cardIndex, $taskIndex)">
-            <p class="taskCardTitle">{{ task.name }}</p>
-            <p v-if="task.desc!== '' && task.desc"class="taskCardDesc"> {{ task.desc }} </p>
-          </div>
+    <draggable :list='cards' group="cards" v-bind="dragOptionsCards">
+      <transition-group tag="div" class="row" name="slide-up" appear>
+        <div class="taskCard" v-for="(card, $cardIndex) in cards" :key="$cardIndex">
+          <p class="closeCard" @click="deleteCard($cardIndex)">&times</p>
+          <h3 class="cardTitle">{{ card.title }}</h3>
+          <div class="taskBody">
+            <draggable :list='card.tasks' group="tasks" v-bind="dragOptions">
+              <div class="task" v-for="( task, $taskIndex ) of card.tasks" :key="$taskIndex" @click="openTask(task.id)">
+              <p class="taskCardTitle">{{ task.name }}</p>
+              <p v-if="task.desc!== '' && task.desc"class="taskCardDesc"> {{ task.desc }} </p>
+              </div>
+            </draggable>
           <div class="taskFooter">
             <input class="addTaskInput" placeholder="Add a new task..." @keyup.enter="addTaskNew($event, card.tasks)"/>
           </div>
@@ -19,22 +19,24 @@
       </div>
       <newCard key="newCard"/>
     </transition-group>
+    </draggable>
   </div>
 </template>
 
 <script>
+import draggable from 'vuedraggable'
 import { mapState } from 'vuex'
 import newCard from '@/components/newCard.vue'
 export default {
   components: {
-    newCard
+    newCard,
+    draggable
   },
   data () {
     return {
       openedTask: { name: '' },
     }
   },
-  props: ['number'],
   methods: {
     openTask (id) {
       this.$router.push({ name: 'task', params: {id: id }})
@@ -46,42 +48,6 @@ export default {
         e.target.value = ''
       }
     },
-    dragTask(e, taskIndex, cardIndex) {
-      e.dataTransfer.effectAllowed = 'move'
-      e.dataTransfer.dropEffect = 'move'
-
-      e.dataTransfer.setData('task-index', taskIndex)
-      e.dataTransfer.setData('card-index', cardIndex)
-      e.dataTransfer.setData('type', 'task')
-    },
-    dropTask(e, tasks, newTaskIndex) {
-      const baseCardIndex = e.dataTransfer.getData('card-index')
-      const baseCardTasks = this.cards[baseCardIndex].tasks
-      const baseTaskIndex = e.dataTransfer.getData('task-index')
-      const newTasks = tasks
-
-      this.$store.commit('MOVE_TASK', { baseCardTasks, newTasks, baseTaskIndex, newTaskIndex })
-    },
-    dragCard(e, baseCardIndex) {
-      e.dataTransfer.effectAllowed = 'move'
-      e.dataTransfer.dropEffect = 'move'
-
-      e.dataTransfer.setData('card-index', baseCardIndex)
-      e.dataTransfer.setData('type', 'card')
-    },
-    dropCard(e, newCardIndex) {
-      const baseCardIndex = e.dataTransfer.getData('card-index')
-
-      this.$store.commit('MOVE_CARD', { baseCardIndex, newCardIndex })
-    },
-    dropType(e, tasks, newCardIndex, newTaskIndex) {
-      if(e.dataTransfer.getData('type') === 'task') {
-        this.dropTask(e, tasks, newTaskIndex)
-      }
-      else {
-        this.dropCard(e, newCardIndex)
-      }
-    },
     deleteCard(cardIndex) {
       var conf = confirm('Do you want to permanently delete this card?')
 
@@ -90,9 +56,29 @@ export default {
       }
     }
   },
-  computed: mapState([
-    'cards'
-  ])
+  computed: {
+    ...mapState(['cards']),
+    dragOptions() {
+      return {
+        animation: 200,
+        group: "tasks",
+        disabled: false,
+        ghostClass: "ghost",
+        delay: 100,
+        delayOnTouchOnly: true
+      }
+    },
+    dragOptionsCards() {
+      return {
+        animation: 200,
+        group: "cards",
+        disabled: false,
+        ghostClass: "ghost",
+        delay: 100,
+        delayOnTouchOnly: true
+      }
+    }
+  }
 }
 </script>
 
